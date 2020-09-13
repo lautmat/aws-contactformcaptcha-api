@@ -38,18 +38,18 @@ sam init --location gh:lautmat/aws-contactformcaptcha-api
 sam build
 ```
 
-2. Now you are ready to deploy.
+2. Now you are ready to deploy using the guided mode.
 
 ```bash
 sam deploy --guided
 ```
 
-3. Customize your stack deployment. 
+3. Customize your stack deployment. Some parameters can will be passed as environment variables to the lambda function and can also be modified after the deployment. 
 
 ![Stack Deployment](/images/sam-deploy.png)
 
 
-4. At the end of the deployment, the command will give you the name of the API that you can star using on your website code. 
+4. At the end of the deployment, the command will give you the name of the API that you can start using in your website code. 
 
 ![Stack Deployment](/images/API-name-output.png)
 
