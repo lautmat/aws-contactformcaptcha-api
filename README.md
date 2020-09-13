@@ -1,146 +1,184 @@
-# Start from scratch starter project
+# Why this app?
 
-This project contains source code and supporting files for the serverless application that you created in the AWS Lambda console. You can update your application at any time by committing and pushing changes to your AWS CodeCommit or GitHub repository.
+Google recaptcha is commonly used in many contact forms. It is a good trade-off between safety, UX and ease to deploy. This stack comes as a ready-to-deploy AWS Serverless Application Model (SAM) package that can be used with virtually any front-end. 
 
-This project includes the following files and folders:
+Whereas it is generally a good idea to check the captcha on the client side so the user can be warned if something didn't go well, it is essential to also validate it on the back-end side so any user or bot trying to bypass the captcha on the webpage will be rejected unless the captcha is confirmed as properly validated by Google recaptcha API. 
 
-- src - Code for the application's Lambda function.
-- \_\_tests__ - Unit tests for the application code.
-- template.yml - A SAM template that defines the application's AWS resources.
-- buildspec.yml -  A build specification file that tells AWS CodeBuild how to create a deployment package for the function.
+# What's in there?
 
-Your Lambda application includes two AWS CloudFormation stacks. The first stack creates the pipeline that builds and deploys your application.
+This SAM stack includes a REST API, a Node.js lambda function, as well as all the necessary IAM roles and permissions. The REST API can be integrated with the front-end serving the captcha. There are examples available for a HTML/CSS/JavaScript static website. I personally use it for my own resume webpage. 
 
-For a full list of possible operations, see the [AWS Lambda Applications documentation](https://docs.aws.amazon.com/lambda/latest/dg/deploying-lambda-apps.html).
+The function will use SES to send email to the contact form owner, using the address specified when deploying the package.
 
-## Try the application out
+The costs are extremely low because everything runs serverless and on-demand. 
 
-1. Go to the Lambda console.
-2. Select **Applications** and select the one you created.
-3. Select **helloFromLambdaFunction** in the **Resources** table.
-4. Create a test event with the default settings. (Select **Select a test event** -> select **Configure test events** -> type in **Event name** -> select **Create**)
-5. Select **Test** and you can see the result.
+# What does is required? 
 
-## Add a resource to your application
+Not much, as everything has been automated. Just make sure the following are available:
 
-The application template uses the AWS Serverless Application Model (AWS SAM) to define application resources. AWS SAM is an extension of AWS CloudFormation with a simpler syntax for configuring common serverless application resources, such as functions, triggers, and APIs. For resources that aren't included in the [AWS SAM specification](https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md), you can use the standard [AWS CloudFormation resource types](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html).
+1. Google recaptcha API. There are many tutorials explaining how to request your own API with Google. It is free and you will receive two parameters that are specific to your recaptcha: the site key (for the client side) and the secret key (to verify on the server side). 
 
-Update `template.yml` to add a dead-letter queue to your application. In the **Resources** section, add a resource named **MyQueue** with the type **AWS::SQS::Queue**.
+2. SES. Just make sure that the email address or domain you are sending emails to is verified as a valid recipient in the region's SES you are deploying the stack to. 
 
-```
-Resources:
-  MyQueue:
-    Type: AWS::SQS::Queue
-```
+3. AWS SAM CLI installed and configured, or you can run the commands in Cloud9 IDE where everything is already preloaded. 
 
-The dead-letter queue is a location for Lambda to send events that could not be processed. It's only used if you invoke your function asynchronously, but it's useful here to show how you can modify your application's resources and function configuration.
+![Google API keys](/images/googleapikeys.png)
 
-Commit the change and push.
+# How to deploy?
+
+1. First clone this repository. 
 
 ```bash
-my-application$ git commit -am "Add dead-letter queue."
-my-application$ git push
+sam init --location gh:lautmat/aws-contactformcaptcha-api
 ```
 
-**To see how the pipeline processes and deploys the change**
-
-1. Open the [**Applications**](https://console.aws.amazon.com/lambda/home#/applications) page.
-1. Choose your application.
-1. Choose **Deployments**.
-
-When the deployment completes, view the application resources on the **Overview** tab to see the new resource.
-
-## Update the permissions boundary
-
-The sample application applies a **permissions boundary** to its function's execution role. The permissions boundary limits the permissions that you can add to the function's role. Without the boundary, users with write access to the project repository could modify the project template to give the function permission to access resources and services outside of the scope of the sample application.
-
-In order for the function to use the queue that you added in the previous step, you must extend the permissions boundary. The Lambda console detects resources that aren't in the permissions boundary and provides an updated policy that you can use to update it.
-
-**To update the application's permissions boundary**
-
-1. Open the [**Applications**](https://console.aws.amazon.com/lambda/home#/applications) page.
-1. Choose your application.
-1. Choose **Edit permissions boundary**.
-1. Follow the instructions shown to update the boundary to allow access to the new queue.
-
-## Update the function configuration
-
-Now you can grant the function permission to access the queue and configure the dead-letter queue setting.
-
-In the function's properties in `template.yml`, add the **DeadLetterQueue** configuration. Under Policies, add **SQSSendMessagePolicy**. **SQSSendMessagePolicy** is a [policy template](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html) that grants the function permission to send messages to a queue.
-
-```
-Resources:
-  MyQueue:
-    Type: AWS::SQS::Queue
-  helloFromLambdaFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: ./
-      Handler: src/handlers/hello-from-lambda.helloFromLambdaHandler
-      Runtime: nodejs10.x
-      MemorySize: 128
-      Timeout: 60
-      DeadLetterQueue:
-        Type: SQS
-        TargetArn: !GetAtt MyQueue.Arn
-      Policies:
-        - SQSSendMessagePolicy:
-            QueueName: !GetAtt MyQueue.QueueName
-        - AWSLambdaBasicExecutionRole
-```
-
-Commit and push the change. When the deployment completes, view the function in the console to see the updated configuration that specifies the dead-letter queue.
-
-## Build and test locally
-
-The AWS SAM command line interface (CLI) is an extension of the AWS CLI that adds functionality for building and testing Lambda applications. It uses Docker to run your functions in an Amazon Linux environment that matches Lambda. It can also emulate your application's build environment and API.
-
-If you prefer to use an integrated development environment (IDE) to build and test your application, you can use the AWS Toolkit.
-The AWS Toolkit is an open-source plugin for popular IDEs that uses the AWS SAM CLI to build and deploy serverless applications on AWS. The AWS Toolkit also adds step-through debugging for Lambda function code.
-
-To get started, see the following:
-
-* [PyCharm](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [IntelliJ](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [VS Code](https://docs.aws.amazon.com/toolkit-for-vscode/latest/userguide/welcome.html)
-* [Visual Studio](https://docs.aws.amazon.com/toolkit-for-visual-studio/latest/user-guide/welcome.html)
-
-To use the AWS SAM CLI with this sample, you need the following tools:
-
-* AWS CLI - [Install the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html) and [configure it with your AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html).
-* AWS SAM CLI - [Install the AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html).
-* Docker - [Install Docker community edition](https://hub.docker.com/search/?type=edition&offering=community).
-
-Build your application with the `sam build` command.
+2. Then build the function.  
 
 ```bash
-my-application$ sam build -m package.json
+sam build
 ```
 
-The AWS SAM CLI installs dependencies that are defined in `package.json`, creates a deployment package, and saves its contents in the `.aws-sam/build` folder.
-
-Run functions locally and invoke them with the `sam local invoke` command.
+2. Now you are ready to deploy.
 
 ```bash
-my-application$ sam local invoke helloFromLambdaFunction --no-event
+sam deploy --guided
 ```
 
-## Unit tests
+3. Customize your stack deployment. 
 
-Requirements:
+![Stack Deployment](/images/sam-deploy.png)
 
-* Node.js - [Install Node.js 10](https://nodejs.org/en/), including the npm package management tool.
 
-Tests are defined in the \_\_tests__ folder in this project. Use `npm` to install the [Jest test framework](https://jestjs.io/) and run unit tests.
+4. At the end of the deployment, the command will give you the name of the API that you can star using on your website code. 
 
-```bash
-my-application$ npm install
-my-application$ npm run test
+![Stack Deployment](/images/API-name-output.png)
+
+
+# Example of integration for a static website
+
+This example is based on a static HTML/CSS website hosted on S3. 
+
+This is how the Contact Form with recaptcha looks like: 
+
+![Contact Form](/images/contact-form.png)
+
+It is rendered using the following form in the html page.
+```html
+      <div class="col-md-8">
+        <div class="cv-item">
+          <form id="contact-form" class="contact-form form-horizontal" action="?" method="post">
+            <fieldset>
+              <div class="form-group">
+                <div class="col-lg-12">
+                  <input type="text" class="form-control" id="name" name="name" placeholder="name">
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="col-lg-12">
+                  <input type="text" class="form-control" id="email" name="email" placeholder="email">
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="col-lg-12">
+                  <input type="text" class="form-control" id="subject" name="subject" placeholder="subject">
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="col-lg-12">
+                  <textarea class="form-control" rows="3" id="message" name="message" placeholder="message"></textarea>
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="col-lg-12">
+                <div class="g-recaptcha" data-sitekey="6LdfnsUZAAAAAHpZ325HLMIHdWoXiG6DERthI5rD" id="recaptcha"></div>
+                </div>
+              </div>				
+              <div class="form-group">
+				<div class="col-lg-12">
+                  <button type="submit" class="btn btn-three" onClick="submitToAPI(event)">Submit</button>
+                </div>
+              </div>
+            </fieldset>
+			<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async defer></script>
+          </form>
+        </div>
+      </div>
 ```
+The page also needs the following javascript statement to render the captcha:
+```html
+<script type="text/javascript">
+	var onloadCallback  = function () {
+		grecaptcha.render('recaptcha', {
+			'sitekey' : '6LdfnsUZAAAAAHpZ325HLMIHdWoXiG6DERthI5rD'
+		});
+	};
+</script>
+```
+The `submitToAPI()` function has been written in the associated `vendor.js` file: 
+```javascript
+/**
+ * Send parameters to the contact form API after verifying the captcha is valid
+ */
+function submitToAPI(e) {
+       e.preventDefault();
+       var rescaptcha = grecaptcha.getResponse();
+			if (rescaptcha == false) {
+                alert ("Captcha not valid");
+                return;
+			}			
+            if ($("#name").val()=="") {
+                alert ("Please enter your name");
+                return;
+			}
+            if ($("#email").val()=="") {
+                alert ("Please enter your email address");
+                return;
+            }
+            if ($("#message").val()=="") {
+                alert ("Please enter your message");
+                return;
+            }
+            var reeamil = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,6})?$/;
+            if (!reeamil.test($("#email").val())) {
+                alert ("Please enter valid email address");
+                return;
+            }
+       var name = $("#name").val();
+       var email = $("#email").val();
+       var subject = $("#subject").val();
+       var desc = $("#message").val();
+       var data = {
+          name : name,
+          email : email,
+          subject : subject,
+          desc : desc,
+		  rescaptcha : rescaptcha
+        };
 
-## Resources
+       $.ajax({
+         type: "POST",
+         url : "https://XXXX.execute-api.ap-southeast-1.amazonaws.com/stage1/contactform",
+		 dataType: "json",
+         crossDomain: "true",
+         contentType: "application/json; charset=utf-8",
+         data: JSON.stringify(data),
+         
+         success: function () {
+           // clear form and show a success message
+           alert("Thanks! Your message has been sent to Laurent.");
+           document.getElementById("contact-form").reset();
+       location.reload();
+         },
+         error: function () {
+           // show an error message
+           alert("There was an error. Message not sent.");
+         }});
+}
+```
+Replace the `url` with your own newly created API's URL.
 
-For an introduction to the AWS SAM specification, the AWS SAM CLI, and serverless application concepts, see the [AWS SAM Developer Guide](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/what-is-sam.html).
+`url : "https://XXXX.execute-api.ap-southeast-1.amazonaws.com/stage1/contactform",`
 
-Next, you can use the AWS Serverless Application Repository to deploy ready-to-use apps that go beyond Hello World samples and learn how authors developed their applications. For more information, see the [AWS Serverless Application Repository main page](https://aws.amazon.com/serverless/serverlessrepo/) and the [AWS Serverless Application Repository Developer Guide](https://docs.aws.amazon.com/serverlessrepo/latest/devguide/what-is-serverlessrepo.html).
+# What's next?
+
+In the next releases we may replace SES by SNS so we can trigger more channels than just the email (for example a Telegram notification). 
