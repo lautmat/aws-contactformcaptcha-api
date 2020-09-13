@@ -1,6 +1,6 @@
 # Why this app?
 
-Google recaptcha is commonly used in many contact forms. It is a good trade-off between bot protection, UX and ease to deploy. This stack comes as a ready-to-deploy AWS Serverless Application Model (SAM) package that can be used with virtually any front-end. 
+Google recaptcha is commonly used in many contact forms and is a good trade-off between bot protection, UX and ease to deploy. This stack comes as a ready-to-deploy AWS Serverless Application Model (SAM) package that can be used with virtually any front-end. 
 
 Whereas it is generally a good idea to check the captcha on the client side so the user can be warned if something didn't go well, it is essential to also validate it on the back-end side so any user or bot trying to bypass the captcha on the webpage will be rejected unless the captcha is confirmed as properly validated by Google recaptcha API. 
 
