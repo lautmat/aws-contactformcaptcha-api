@@ -12,7 +12,7 @@ The function will use SES to send email to the contact form owner, using the add
 
 The costs are extremely low because everything runs serverless and on-demand. 
 
-# What does is required? 
+# What does it require? 
 
 Not much, as everything has been automated. Just make sure the following are available:
 
