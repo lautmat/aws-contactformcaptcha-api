@@ -44,7 +44,7 @@ sam build
 sam deploy --guided
 ```
 
-3. Customize your stack deployment. Some parameters can will be passed as environment variables to the lambda function and can also be modified after the deployment. 
+3. Customize your stack deployment. The parameters will be passed as environment variables to the lambda function and can also be modified after the deployment. 
 
 ![Stack Deployment](/images/sam-deploy.png)
 
