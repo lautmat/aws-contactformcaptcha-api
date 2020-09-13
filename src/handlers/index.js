@@ -3,7 +3,7 @@ require('isomorphic-fetch');
 
 let RECEIVEREMAIL = process.env.RECEIVEREMAIL;
 let SENDEREMAIL = process.env.SENDEREMAIL;
-let RECAPTCHASERVERKEY = process.env.RECAPTCHASERVERKEY;
+let RECAPTCHASECRETKEY = process.env.RECAPTCHASECRETKEY;
 
 const fetch = require("node-fetch");
 
@@ -24,7 +24,7 @@ const recaptchaResult = await fetch(`https://www.google.com/recaptcha/api/siteve
       'Accept': 'application/json',
       'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
     },
-    body: `secret=${RECAPTCHASERVERKEY}&response=${event.rescaptcha}`
+    body: `secret=${RECAPTCHASECRETKEY}&response=${event.rescaptcha}`
   })
   .then(res => (res.json()))
   .then(json => (json.success))

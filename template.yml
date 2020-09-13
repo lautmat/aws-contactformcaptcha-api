@@ -4,7 +4,7 @@ Parameters:
     Type: String
   RECEIVEREMAIL:
     Type: String    
-  RECAPTCHASERVERKEY:
+  RECAPTCHASECRETKEY:
     Type: String
 Resources:
   ContactFormFunctionRole:
@@ -31,7 +31,7 @@ Resources:
           Variables: 
             SENDEREMAIL : !Ref SENDEREMAIL
             RECEIVEREMAIL : !Ref RECEIVEREMAIL
-            RECAPTCHASERVERKEY : !Ref RECAPTCHASERVERKEY
+            RECAPTCHASECRETKEY : !Ref RECAPTCHASECRETKEY
       Description: A Lambda function for the contact form
       Tags:
         - Value: SAM
